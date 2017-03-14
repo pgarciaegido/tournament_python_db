@@ -23,6 +23,7 @@ def deleteMatches():
 
     print('Matches deleted succesfully')
 
+
 def deletePlayers():
     """Remove all the player records from the database."""
 
@@ -48,6 +49,8 @@ def countPlayers():
     conn.close()
 
     print('There are %s players registered' % num)
+    # It is a tuple
+    return num[0]
 
 
 def registerPlayer(name):
@@ -73,8 +76,8 @@ def registerPlayer(name):
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
 
-    The first entry in the list should be the player in first place, or a player
-    tied for first place if there is currently a tie.
+    The first entry in the list should be the player in first place, or a
+    player tied for first place if there is currently a tie.
 
     Returns:
       A list of tuples, each of which contains (id, name, wins, matches):
@@ -84,6 +87,16 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
+    q = "SELECT * FROM standings"
+
+    conn = connect()
+    c = conn.cursor()
+    c.execute(q)
+    r = c.fetchall()
+    conn.close()
+
+    return r
+
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -92,6 +105,16 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    q = "INSERT INTO matches VALUES (%s, %s)"
+
+    conn = connect()
+    c = conn.cursor()
+    c.execute(q, (winner, loser))
+    conn.commit()
+    conn.close()
+
+    print('New match recorded between %s and %s. The winner was %s'
+          % (winner, loser, winner))
 
 
 def swissPairings():
@@ -109,3 +132,9 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    a = playerStandings()
+    next_round = []
+    for x in range(0, len(a), 2):
+        pair = (a[x][0], a[x][1], a[x+1][0], a[x+1][1])
+        next_round.append(pair)
+    return next_round
